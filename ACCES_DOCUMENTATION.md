@@ -12,16 +12,20 @@
 
 **Solution** : Utilisez les URLs suivantes :
 
-#### Via la Gateway (recommandé)
-- **API Documentation Service** : `http://localhost:8080/api-documentation-service/swagger-ui.html`
-- **User Service** : `http://localhost:8080/user-service/swagger-ui.html`
-- **Parish Service** : `http://localhost:8080/parish-service/swagger-ui.html`
-- **Activity Service** : `http://localhost:8080/activity-service/swagger-ui.html`
-- **Communication Service** : `http://localhost:8080/communication-service/swagger-ui.html`
-- **Content Service** : `http://localhost:8080/content-service/swagger-ui.html`
-- **Worship Service** : `http://localhost:8080/worship-service/swagger-ui.html`
+#### Via la Gateway (API Docs JSON uniquement)
+⚠️ **Note importante** : Swagger UI ne fonctionne pas correctement via la Gateway car les ressources statiques (CSS, JS) ne sont pas routées. Utilisez l'accès direct aux services.
 
-#### Accès direct (si la Gateway ne fonctionne pas)
+**API Docs JSON (fonctionne via Gateway)** :
+- **API Documentation Service** : `http://localhost:8080/api-documentation-service/v3/api-docs`
+- **User Service** : `http://localhost:8080/user-service/v3/api-docs`
+- **Parish Service** : `http://localhost:8080/parish-service/v3/api-docs`
+- **Activity Service** : `http://localhost:8080/activity-service/v3/api-docs`
+- **Communication Service** : `http://localhost:8080/communication-service/v3/api-docs`
+- **Content Service** : `http://localhost:8080/content-service/v3/api-docs`
+- **Worship Service** : `http://localhost:8080/worship-service/v3/api-docs`
+
+#### Accès direct (recommandé pour Swagger UI)
+**Utilisez l'accès direct pour Swagger UI** car la Gateway ne peut pas servir les ressources statiques nécessaires.
 - **API Documentation Service** : `http://localhost:8087/swagger-ui.html`
 - **User Service** : `http://localhost:8081/swagger-ui.html`
 - **Parish Service** : `http://localhost:8082/swagger-ui.html`
@@ -57,8 +61,9 @@
 - Vérifiez que tous les services sont enregistrés avec le statut "UP"
 
 **Via l'API Documentation Service** :
-- Accédez à : `http://localhost:8080/api-documentation-service/api/documentation/services`
-- Cette API liste tous les services enregistrés dans Eureka
+- **Liste des services** : `http://localhost:8080/api-documentation-service/api/documentation/services` ✅ Fonctionne
+- **URLs Swagger** : `http://localhost:8080/api-documentation-service/api/documentation/swagger-urls` ✅ Fonctionne (corrigé)
+- **Accès direct** : `http://localhost:8087/api/documentation/services` ✅ Fonctionne
 
 ### 4. API Documentation centralisée
 
