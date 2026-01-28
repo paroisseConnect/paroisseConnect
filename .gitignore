@@ -1,0 +1,39 @@
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+hs_err_pid*
+
+# Maven
+target/
+*/target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Build / dist
+build/
+out/
+dist/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+
+# IntelliJ shelves & workspace (already handled in .idea/.gitignore, doublon in cas de déplacement)
+.idea/shelf/
+.idea/workspace.xml
+
+# OS / divers
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+
