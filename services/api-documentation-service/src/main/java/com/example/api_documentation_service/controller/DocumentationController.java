@@ -54,9 +54,17 @@ public class DocumentationController {
 						instanceInfo.put("serviceId", instance.getServiceId());
 						
 						// URL de la documentation Swagger pour ce service
-						String swaggerUrl = String.format("http://localhost:8080/%s/v3/api-docs", 
+						// Via Gateway (pour les services Spring MVC avec Swagger UI)
+						String swaggerUiUrl = String.format("http://localhost:8080/%s/swagger-ui.html", 
 								serviceName.toLowerCase());
-						instanceInfo.put("swaggerUrl", swaggerUrl);
+						String swaggerApiDocsUrl = String.format("http://localhost:8080/%s/v3/api-docs", 
+								serviceName.toLowerCase());
+						instanceInfo.put("swaggerUiUrl", swaggerUiUrl);
+						instanceInfo.put("swaggerApiDocsUrl", swaggerApiDocsUrl);
+						// URL directe (si le service est accessible directement)
+						String directSwaggerUiUrl = String.format("http://%s:%d/swagger-ui.html", 
+								instance.getHost(), instance.getPort());
+						instanceInfo.put("directSwaggerUiUrl", directSwaggerUiUrl);
 						
 						serviceInfo.put("details", instanceInfo);
 					}
@@ -85,6 +93,8 @@ public class DocumentationController {
 		response.put("swaggerUrls", swaggerUrls);
 		response.put("uiUrl", "http://localhost:8080/api-documentation-service/swagger-ui.html");
 		response.put("aggregatedApiDocs", "http://localhost:8080/api-documentation-service/v3/api-docs");
+		response.put("note", "Pour accéder à Swagger UI d'un service, utilisez: http://localhost:8080/{service-name}/swagger-ui.html");
+		response.put("directAccessNote", "Vous pouvez aussi accéder directement aux services sur leurs ports respectifs");
 		
 		return ResponseEntity.ok((Map) response);
 	}
