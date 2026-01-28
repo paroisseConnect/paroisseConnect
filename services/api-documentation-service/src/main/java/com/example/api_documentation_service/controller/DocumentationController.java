@@ -79,7 +79,7 @@ public class DocumentationController {
 	@GetMapping("/swagger-urls")
 	@Operation(summary = "Liste toutes les URLs Swagger", 
 			   description = "Retourne les URLs de documentation Swagger pour chaque service")
-	public ResponseEntity<Map<String, String>> getSwaggerUrls() {
+	public ResponseEntity<Map<String, Object>> getSwaggerUrls() {
 		List<String> services = discoveryClient.getServices();
 		
 		Map<String, String> swaggerUrls = services.stream()
@@ -96,6 +96,6 @@ public class DocumentationController {
 		response.put("note", "Pour accéder à Swagger UI d'un service, utilisez: http://localhost:8080/{service-name}/swagger-ui.html");
 		response.put("directAccessNote", "Vous pouvez aussi accéder directement aux services sur leurs ports respectifs");
 		
-		return ResponseEntity.ok((Map) response);
+		return ResponseEntity.ok(response);
 	}
 }
