@@ -1,0 +1,110 @@
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: paroisse-postgres
+    environment:
+      POSTGRES_DB: churchnow
+      POSTGRES_USER: church
+      POSTGRES_PASSWORD: church
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U church -d churchnow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - paroisse-network
+
+  # Service Discovery (Eureka)
+  discovery-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: discovery-service
+    container_name: paroisse-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - paroisse-network
+
+  # Config Server
+  config-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: config-service
+    container_name: paroisse-config
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - paroisse-network
+
+  # Gateway
+  gateway-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: gateway-service
+    container_name: paroisse-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_healthy
+    networks:
+      - paroisse-network
+
+  # Exemple pour les microservices métiers (User Service)
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: user-service
+    container_name: paroisse-user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    networks:
+      - paroisse-network
+
+  # Répétez la structure pour parish-service, activity-service, etc.
+  # en changeant simplement SERVICE_NAME, container_name et ports.
+
+networks:
+  paroisse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

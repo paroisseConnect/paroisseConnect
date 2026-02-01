@@ -1,0 +1,55 @@
+# Fichiers et dossiers à ignorer lors de la construction Docker
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Build artifacts
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Tests
+**/test/
+
+# Ressources non nécessaires
+ressources/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Autres
+*.swp
+*.swo
+*~
