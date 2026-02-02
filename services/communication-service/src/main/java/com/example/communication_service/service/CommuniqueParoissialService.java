@@ -110,6 +110,34 @@ public class CommuniqueParoissialService {
 		communiqueRepository.deleteById(id);
 	}
 
+	public CommuniqueDetailDto addAttachment(Long communiqueId, CommuniqueRequest.PieceJointeRequest request) {
+		CommuniqueParoissial communique = communiqueRepository.findById(communiqueId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Communique introuvable"));
+		PieceJointeCommunique entity = new PieceJointeCommunique();
+		entity.setCommunique(communique);
+		entity.setNomFichier(request.getNomFichier());
+		entity.setUrl(request.getUrl());
+		entity.setType(parseTypePieceJointe(request.getType()));
+		communique.getPiecesJointes().add(entity);
+		return toDetailDto(communiqueRepository.save(communique));
+	}
+
+	public CommuniqueDetailDto removeAttachment(Long communiqueId, Long pieceJointeId) {
+		CommuniqueParoissial communique = communiqueRepository.findById(communiqueId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Communique introuvable"));
+		boolean removed = communique.getPiecesJointes().removeIf(piece -> pieceJointeId.equals(piece.getCode()));
+		if (!removed) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Piece jointe introuvable");
+		}
+		return toDetailDto(communiqueRepository.save(communique));
+	}
+
+	public void triggerNotification(Long communiqueId) {
+		if (!communiqueRepository.existsById(communiqueId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Communique introuvable");
+		}
+	}
+
 	private void applyRequest(CommuniqueParoissial communique, CommuniqueRequest request) {
 		communique.setLibelle(request.getLibelle());
 		communique.setCodeUniteEcclesiale(request.getCodeUniteEcclesiale());
