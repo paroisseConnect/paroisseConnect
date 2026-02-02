@@ -2,7 +2,6 @@ package com.example.user_service.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.user_service.config.JwtService;
 import com.example.user_service.dto.LoginRequest;
 import com.example.user_service.dto.LoginResponse;
 import com.example.user_service.dto.RegisterRequest;
@@ -39,19 +39,22 @@ public class UserManagementService {
 	private final RolePermissionRepository rolePermissionRepository;
 	private final AbonnementRepository abonnementRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtService jwtService;
 
 	public UserManagementService(UtilisateurRepository utilisateurRepository,
 			RoleRepository roleRepository,
 			PermissionRepository permissionRepository,
 			RolePermissionRepository rolePermissionRepository,
 			AbonnementRepository abonnementRepository,
-			PasswordEncoder passwordEncoder) {
+			PasswordEncoder passwordEncoder,
+			JwtService jwtService) {
 		this.utilisateurRepository = utilisateurRepository;
 		this.roleRepository = roleRepository;
 		this.permissionRepository = permissionRepository;
 		this.rolePermissionRepository = rolePermissionRepository;
 		this.abonnementRepository = abonnementRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.jwtService = jwtService;
 	}
 
 	public UserDto register(RegisterRequest request) {
@@ -84,7 +87,7 @@ public class UserManagementService {
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Identifiants invalides");
 		}
-		String token = UUID.randomUUID().toString();
+		String token = jwtService.createToken(user.getCode(), user.getUsername());
 		return new LoginResponse(token, UserDto.from(user));
 	}
 
@@ -206,6 +209,15 @@ public class UserManagementService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Abonnement introuvable");
 		}
 		abonnementRepository.deleteById(code);
+	}
+
+	/**
+	 * Désabonnement par le fidèle : seul le propriétaire de l'abonnement peut le supprimer.
+	 */
+	public void deleteSubscriptionByUser(Integer code, Integer userId) {
+		AbonnementUniteEcclesiale abonnement = abonnementRepository.findByCodeAndCodeUtilisateur(code, userId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Abonnement introuvable ou non autorise"));
+		abonnementRepository.delete(abonnement);
 	}
 
 	@Transactional(readOnly = true)
