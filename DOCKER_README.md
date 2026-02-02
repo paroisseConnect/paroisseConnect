@@ -400,6 +400,19 @@ docker compose logs [service-name]
 docker network inspect paroisseconnect_paroisse-network
 ```
 
+### Problème : config-service en erreur ("Property spring.profiles.active is invalid in a profile specific resource")
+
+Le fichier `application-docker.properties` ne doit pas contenir `spring.profiles.active` (le profil est déjà activé par la variable d'environnement). Reconstruire l'image :
+
+```bash
+docker-compose build config-service
+docker-compose up -d
+```
+
+### Problème : Port PostgreSQL 5432 déjà utilisé
+
+Le `docker-compose.yml` expose PostgreSQL sur le port **5433** sur l'hôte (mapping `5433:5432`) pour éviter les conflits avec un PostgreSQL local. Connexion depuis l'hôte : `localhost:5433`. Pour changer le port, modifiez la section `postgres` → `ports`.
+
 ### Problème : Erreur "port already in use"
 
 **Trouver le processus utilisant le port :**
@@ -460,7 +473,8 @@ curl http://localhost:8080/actuator/health
 
 - **Eureka Dashboard** : http://localhost:8761
 - **Gateway Health** : http://localhost:8080/actuator/health
-- **Swagger UI** : http://localhost:8087/swagger-ui.html (accès direct)
+- **Swagger UI (Gateway)** : http://localhost:8080/swagger-ui.html
+- **Swagger UI (Direct)** : http://localhost:8087/swagger-ui.html
 
 ## 🧹 Nettoyage
 
