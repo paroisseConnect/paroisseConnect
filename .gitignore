@@ -30,6 +30,11 @@ dist/
 .idea/shelf/
 .idea/workspace.xml
 
+# Environnement (secrets, config serveur)
+.env
+.env.local
+.env.*.local
+
 # OS / divers
 *.swp
 *.swo

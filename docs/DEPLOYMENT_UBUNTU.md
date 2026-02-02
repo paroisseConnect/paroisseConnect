@@ -137,29 +137,76 @@ git clone git@github.com:VOTRE_ORGANISATION/paroisseConnect.git .
 
 ---
 
-## 6. (Optionnel) Fichier d’environnement pour la production
+## 6. (Optionnel) Fichier d'environnement pour la production
 
-Pour changer des mots de passe ou des paramètres sans modifier le dépôt, vous pouvez utiliser un fichier `.env` à la racine du projet (le même répertoire que `docker-compose.yml`).
+Le projet est configuré pour lire un fichier **`.env`** à la racine (même répertoire que `docker-compose.yml`). Ce fichier permet de changer mots de passe et ports **sans modifier le dépôt**, et de garder les secrets hors de Git.
+
+### 6.1 Créer le fichier .env sur le serveur
+
+Le dépôt contient un fichier **`.env.example`** qui liste toutes les variables supportées. Sur le serveur, copiez-le en `.env` puis adaptez les valeurs :
 
 ```bash
 cd /opt/paroisse-connect   # ou le répertoire où vous avez cloné
+cp .env.example .env
 nano .env
 ```
 
-Exemple de contenu (à adapter) :
+Le fichier **`.env`** est déjà dans `.gitignore` : il ne sera pas commité et ne sera pas écrasé par un `git pull`.
+
+### 6.2 Variables utilisées par le projet
+
+Le `docker-compose.yml` utilise les variables suivantes (avec des valeurs par défaut si `.env` est absent).
+
+| Variable | Rôle | Valeur par défaut |
+|----------|------|--------------------|
+| **Base de données** | | |
+| `POSTGRES_DB` | Nom de la base PostgreSQL | `churchnow` |
+| `POSTGRES_USER` | Utilisateur PostgreSQL (conteneur + tous les services Spring) | `church` |
+| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL (**à changer en production**) | `church` |
+| **Ports exposés sur l'hôte** | | |
+| `POSTGRES_PORT` | Port d'accès à PostgreSQL depuis l'hôte | `5433` |
+| `DISCOVERY_PORT` | Port Eureka (dashboard) | `8761` |
+| `CONFIG_PORT` | Port Config Server | `8888` |
+| `GATEWAY_PORT` | Port du gateway (API + Swagger) | `8088` |
+| `USER_SERVICE_PORT` | Port user-service | `8081` |
+| `PARISH_SERVICE_PORT` | Port parish-service | `8082` |
+| `ACTIVITY_SERVICE_PORT` | Port activity-service | `8083` |
+| `COMMUNICATION_SERVICE_PORT` | Port communication-service | `8084` |
+| `CONTENT_SERVICE_PORT` | Port content-service | `8085` |
+| `WORSHIP_SERVICE_PORT` | Port worship-service | `8086` |
+| `API_DOCUMENTATION_SERVICE_PORT` | Port api-documentation-service | `8087` |
+
+- **Base de données** : `POSTGRES_*` est utilisée par le conteneur `postgres` et par tous les microservices qui se connectent à la base (user, parish, activity, communication, content, worship). En changeant `POSTGRES_PASSWORD` dans `.env`, vous changez à la fois le mot de passe du conteneur PostgreSQL et celui utilisé par les services Spring.
+- **Ports** : modifier une variable (ex. `GATEWAY_PORT=8089`) change uniquement le port exposé sur l'hôte ; à l'intérieur du réseau Docker les services communiquent toujours entre eux sur leurs ports internes (8080 pour le gateway, 5432 pour PostgreSQL, etc.).
+
+### 6.3 Exemple de .env pour la production
 
 ```env
-# Base de données (optionnel : par défaut dans docker-compose)
+# Base de données — en production : mot de passe fort
+POSTGRES_DB=churchnow
+POSTGRES_USER=church
 POSTGRES_PASSWORD=votre_mot_de_passe_securise
 
-# Ports exposés sur l’hôte (optionnel)
-# GATEWAY_PORT=8088
-# POSTGRES_PORT=5433
+# Ports (modifier seulement si conflit sur le serveur)
+POSTGRES_PORT=5433
+GATEWAY_PORT=8088
+DISCOVERY_PORT=8761
+CONFIG_PORT=8888
+USER_SERVICE_PORT=8081
+PARISH_SERVICE_PORT=8082
+ACTIVITY_SERVICE_PORT=8083
+COMMUNICATION_SERVICE_PORT=8084
+CONTENT_SERVICE_PORT=8085
+WORSHIP_SERVICE_PORT=8086
+API_DOCUMENTATION_SERVICE_PORT=8087
 ```
 
-Ensuite, dans `docker-compose.yml`, vous pouvez référencer ces variables avec `${POSTGRES_PASSWORD}` etc. Si vous ne créez pas de `.env`, le projet fonctionne avec les valeurs par défaut du `docker-compose.yml`.
+Si vous ne créez pas de `.env`, le projet fonctionne avec les valeurs par défaut ci-dessus (identiques à celles définies dans `docker-compose.yml`).
 
-**Explication** : Le `.env` permet de garder des secrets hors du dépôt Git (pensez à ajouter `.env` dans `.gitignore` si il contient des secrets).
+**Explication** : Le `.env` permet de garder les secrets (notamment `POSTGRES_PASSWORD`) hors du dépôt Git. Il est ignoré par Git (`.gitignore`) ; ne commitez jamais un fichier `.env` contenant des mots de passe réels.
+
+
+---
 
 ---
 
@@ -322,6 +369,9 @@ sudo mkdir -p /opt/paroisse-connect && sudo chown $USER:$USER /opt/paroisse-conn
 
 # Clone (remplacer par votre URL GitHub)
 git clone https://github.com/VOTRE_ORGANISATION/paroisseConnect.git .
+
+# (Optionnel) Fichier d'environnement pour mots de passe et ports
+# cp .env.example .env && nano .env
 ```
 
 ### C. Premier démarrage
@@ -366,7 +416,7 @@ docker compose down -v       # + suppression des volumes (données)
 
 | Problème | Action |
 |----------|--------|
-| Port 8088 ou 5433 déjà utilisé | Changer le mapping dans `docker-compose.yml` (ex. `"8089:8080"` pour le gateway) ou arrêter le service qui utilise le port. |
+| Port 8088 ou 5433 déjà utilisé | Définir `GATEWAY_PORT` ou `POSTGRES_PORT` dans `.env` (ex. `GATEWAY_PORT=8089`), ou arrêter le service qui utilise le port. |
 | Build très lent | Normal au premier build (téléchargement Maven). Attendre ou vérifier la connexion Internet du serveur. |
 | Un service reste en "starting" ou "unhealthy" | Consulter les logs : `docker compose logs <nom-service>`. Vérifier la RAM et l’espace disque. |
 | Impossible d’accéder à Swagger depuis l’extérieur | Vérifier le pare-feu (ex. `sudo ufw allow 8088/tcp` puis `sudo ufw reload`). |

@@ -4,15 +4,15 @@ services:
     image: postgres:16-alpine
     container_name: paroisse-postgres
     environment:
-      POSTGRES_DB: churchnow
-      POSTGRES_USER: church
-      POSTGRES_PASSWORD: church
+      POSTGRES_DB: ${POSTGRES_DB:-churchnow}
+      POSTGRES_USER: ${POSTGRES_USER:-church}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-church}
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U church -d churchnow"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
         SERVICE_NAME: discovery-service
     container_name: paroisse-discovery
     ports:
-      - "8761:8761"
+      - "${DISCOVERY_PORT:-8761}:8761"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
@@ -50,7 +50,7 @@ services:
         SERVICE_NAME: config-service
     container_name: paroisse-config
     ports:
-      - "8888:8888"
+      - "${CONFIG_PORT:-8888}:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=docker,native
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
@@ -75,7 +75,7 @@ services:
         SERVICE_NAME: gateway-service
     container_name: paroisse-gateway
     ports:
-      - "8088:8080"
+      - "${GATEWAY_PORT:-8088}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
@@ -101,14 +101,14 @@ services:
         SERVICE_NAME: user-service
     container_name: paroisse-user-service
     ports:
-      - "8081:8081"
+      - "${USER_SERVICE_PORT:-8081}:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -132,14 +132,14 @@ services:
         SERVICE_NAME: parish-service
     container_name: paroisse-parish-service
     ports:
-      - "8082:8082"
+      - "${PARISH_SERVICE_PORT:-8082}:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -163,14 +163,14 @@ services:
         SERVICE_NAME: activity-service
     container_name: paroisse-activity-service
     ports:
-      - "8083:8083"
+      - "${ACTIVITY_SERVICE_PORT:-8083}:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -194,14 +194,14 @@ services:
         SERVICE_NAME: communication-service
     container_name: paroisse-communication-service
     ports:
-      - "8084:8084"
+      - "${COMMUNICATION_SERVICE_PORT:-8084}:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -225,14 +225,14 @@ services:
         SERVICE_NAME: content-service
     container_name: paroisse-content-service
     ports:
-      - "8085:8085"
+      - "${CONTENT_SERVICE_PORT:-8085}:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -256,14 +256,14 @@ services:
         SERVICE_NAME: worship-service
     container_name: paroisse-worship-service
     ports:
-      - "8086:8086"
+      - "${WORSHIP_SERVICE_PORT:-8086}:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
-      - SPRING_DATASOURCE_USERNAME=church
-      - SPRING_DATASOURCE_PASSWORD=church
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-churchnow}?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-church}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-church}
     depends_on:
       postgres:
         condition: service_healthy
@@ -287,7 +287,7 @@ services:
         SERVICE_NAME: api-documentation-service
     container_name: paroisse-api-documentation-service
     ports:
-      - "8087:8087"
+      - "${API_DOCUMENTATION_SERVICE_PORT:-8087}:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
