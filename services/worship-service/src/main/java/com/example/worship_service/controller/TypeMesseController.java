@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/types-messe")
+@RequestMapping({"/api/types-messe", "/api/messes/types"})
 @Tag(name = "Horaires Messes - Types")
 public class TypeMesseController {
 
