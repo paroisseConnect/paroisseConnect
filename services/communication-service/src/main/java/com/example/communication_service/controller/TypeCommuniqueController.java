@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/types-communique")
+@RequestMapping({"/api/types-communique", "/api/communiques/types"})
 @Tag(name = "Communiques - Types")
 public class TypeCommuniqueController {
 
