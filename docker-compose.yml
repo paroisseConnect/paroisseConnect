@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: church
       POSTGRES_PASSWORD: church
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -32,6 +32,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
       - paroisse-network
 
@@ -46,11 +52,17 @@ services:
     ports:
       - "8888:8888"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=docker,native
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
     depends_on:
       discovery-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     networks:
       - paroisse-network
 
@@ -63,7 +75,7 @@ services:
         SERVICE_NAME: gateway-service
     container_name: paroisse-gateway
     ports:
-      - "8080:8080"
+      - "8088:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
@@ -71,10 +83,16 @@ services:
     depends_on:
       config-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     networks:
       - paroisse-network
 
-  # Exemple pour les microservices métiers (User Service)
+  # User Service
   user-service:
     build:
       context: .
@@ -96,11 +114,195 @@ services:
         condition: service_healthy
       config-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     networks:
       - paroisse-network
 
-  # Répétez la structure pour parish-service, activity-service, etc.
-  # en changeant simplement SERVICE_NAME, container_name et ports.
+  # Parish Service
+  parish-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: parish-service
+    container_name: paroisse-parish-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
+
+  # Activity Service
+  activity-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: activity-service
+    container_name: paroisse-activity-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
+
+  # Communication Service
+  communication-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: communication-service
+    container_name: paroisse-communication-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
+
+  # Content Service
+  content-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: content-service
+    container_name: paroisse-content-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8085/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
+
+  # Worship Service
+  worship-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: worship-service
+    container_name: paroisse-worship-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/churchnow?currentSchema=paroisse_schema
+      - SPRING_DATASOURCE_USERNAME=church
+      - SPRING_DATASOURCE_PASSWORD=church
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
+
+  # API Documentation Service
+  api-documentation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-documentation-service
+    container_name: paroisse-api-documentation-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8087/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - paroisse-network
 
 networks:
   paroisse-network:
