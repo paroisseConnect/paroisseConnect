@@ -10,8 +10,11 @@ ARG SERVICE_NAME
 # Note : Dans docker-compose, le contexte est la racine '.', donc le chemin est services/nom
 COPY services/${SERVICE_NAME}/ /app/
 
+# Réseau : retries et timeout pour limiter les échecs de résolution (plexus-utils, etc.)
+ENV MAVEN_OPTS="-Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120"
+
 # On lance le build directement (le pom.xml est maintenant à la racine de /app)
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine

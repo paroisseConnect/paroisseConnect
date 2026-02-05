@@ -261,12 +261,12 @@ docker compose logs -f gateway-service
 
 Une fois tous les services **healthy** :
 
-- **API / Gateway** : `http://IP_DU_SERVEUR:8088`
-- **Santé du gateway** : `http://IP_DU_SERVEUR:8088/actuator/health`
-- **Swagger UI** : `http://IP_DU_SERVEUR:8088/swagger-ui.html`
-- **Eureka** : `http://IP_DU_SERVEUR:8761`
+- **API / Gateway** : `https://173.249.49.3:8088`
+- **Santé du gateway** : `http://173.249.49.3:8088/actuator/health`
+- **Swagger UI** : `http://173.249.49.3:8088/swagger-ui.html`
+- **Eureka** : `http://173.249.49.3:8761`
 
-Remplacez `IP_DU_SERVEUR` par l’adresse IP ou le nom de domaine du serveur. Si vous testez depuis le serveur lui-même, vous pouvez utiliser `localhost`.
+Remplacez `173.249.49.3` par l’adresse IP ou le nom de domaine du serveur. Si vous testez depuis le serveur lui-même, vous pouvez utiliser `localhost`.
 
 **Explication** : Le gateway est exposé sur le port **8088** (configuré dans `docker-compose.yml`) pour éviter un conflit avec d’éventuelles autres applications sur 8080.
 
@@ -418,6 +418,7 @@ docker compose down -v       # + suppression des volumes (données)
 |----------|--------|
 | Port 8088 ou 5433 déjà utilisé | Définir `GATEWAY_PORT` ou `POSTGRES_PORT` dans `.env` (ex. `GATEWAY_PORT=8089`), ou arrêter le service qui utilise le port. |
 | Build très lent | Normal au premier build (téléchargement Maven). Attendre ou vérifier la connexion Internet du serveur. |
+| **BUILD FAILURE** : `plexus-utils:4.0.1` ou `Failed to read artifact descriptor` | Le projet fixe déjà `maven-clean-plugin` en 3.3.2 et ajoute des retries Maven dans le Dockerfile. Si l’erreur persiste : relancer `docker compose build --no-cache <service>` ou vérifier l’accès à Maven Central (réseau / proxy). |
 | Un service reste en "starting" ou "unhealthy" | Consulter les logs : `docker compose logs <nom-service>`. Vérifier la RAM et l’espace disque. |
 | Impossible d’accéder à Swagger depuis l’extérieur | Vérifier le pare-feu (ex. `sudo ufw allow 8088/tcp` puis `sudo ufw reload`). |
 
