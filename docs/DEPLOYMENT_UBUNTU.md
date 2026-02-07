@@ -424,6 +424,11 @@ docker compose down -v       # + suppression des volumes (données)
 
 ---
 
+**Erreurs fréquentes en production (communication-service et autres) :**
+- **`discovery-service: Try again`, `TimedSupervisorTask timed out`** : DNS ou réseau Docker vers Eureka. Vérifier `docker compose ps`, redémarrer le stack si besoin.
+- **`HikariPool - Failed to validate connection`** : Déjà atténué par `max-lifetime` en docker. Vérifier charge serveur et PostgreSQL.
+- **`MultipartException: Stream ended unexpectedly`** : Requête multipart vide ou tronquée. Le service renvoie 400. Ne pas envoyer multipart sans corps valide.
+
 ## 14. Bonnes pratiques résumées
 
 1. **Ne pas lancer les conteneurs en root** : utiliser `usermod -aG docker $USER` et se reconnecter.
